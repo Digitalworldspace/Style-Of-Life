@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin — Style Of Life</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,500;0,600;0,700;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ivory:#FFFFFF; --ivory-2:#F7F6F2; --charcoal:#15130F; --charcoal-soft:#5C564A;
+    --gold:#B8935A; --gold-deep:#96723C; --line:#E9E4D8; --card-bg:#FFFFFF;
+    --green:#3D8A5B; --red:#C41E2A;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Jost',sans-serif; background:var(--ivory-2); color:var(--charcoal); line-height:1.5;}
+  h1,h2,h3{font-family:'Bodoni Moda',serif; font-weight:600; margin:0 0 8px;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 20px 80px;}
+  header.admin-head{
+    background:var(--charcoal); color:#F5F1E6; padding:22px 20px; margin-bottom:28px;
+  }
+  header.admin-head .inner{max-width:1040px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;}
+  header.admin-head h1{color:#F5F1E6; font-size:1.3rem; margin:0;}
+  header.admin-head a{color:var(--gold); text-decoration:none; font-size:0.9rem; border-bottom:1px solid var(--gold); padding-bottom:1px;}
+
+  .notice{
+    background:#FFF7E6; border:1px solid #E9D7A8; border-radius:4px; padding:16px 18px; margin-bottom:26px;
+    font-size:0.9rem; color:#5C4A1E;
+  }
+  .notice b{color:#3D2E0A;}
+
+  .tabs{display:flex; gap:8px; margin-bottom:22px; border-bottom:1px solid var(--line);}
+  .tab-btn{
+    background:none; border:none; padding:12px 18px; font-family:'Jost',sans-serif; font-size:0.95rem; font-weight:500;
+    color:var(--charcoal-soft); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+  }
+  .tab-btn.active{color:var(--charcoal); border-bottom-color:var(--gold);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .card{background:var(--card-bg); border:1px solid var(--line); border-radius:4px; padding:22px; margin-bottom:22px;}
+  .card h2{font-size:1.2rem; margin-bottom:14px;}
+
+  label{display:block; font-size:0.85rem; color:var(--charcoal-soft); margin:14px 0 5px;}
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=number], input[type=url], select, textarea{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:3px; font-family:'Jost',sans-serif;
+    font-size:0.95rem; background:#fff; color:var(--charcoal);
+  }
+  textarea{resize:vertical; min-height:70px;}
+  input[type=file]{font-size:0.85rem;}
+  .row{display:flex; gap:16px; flex-wrap:wrap;}
+  .row > div{flex:1; min-width:180px;}
+  .type-toggle{display:flex; gap:18px; margin:14px 0 6px;}
+  .type-toggle label{display:flex; align-items:center; gap:6px; margin:0; font-size:0.9rem; color:var(--charcoal); cursor:pointer;}
+  .type-toggle input{width:auto;}
+
+  .btn{
+    display:inline-flex; align-items:center; gap:6px; padding:11px 20px; border-radius:3px; border:none; cursor:pointer;
+    font-family:'Jost',sans-serif; font-size:0.9rem; font-weight:500; text-decoration:none;
+  }
+  .btn-primary{background:var(--charcoal); color:#fff;}
+  .btn-green{background:var(--green); color:#fff;}
+  .btn-outline{background:none; border:1px solid var(--charcoal); color:var(--charcoal);}
+  .btn-danger{background:none; border:1px solid var(--red); color:var(--red); padding:6px 12px; font-size:0.8rem;}
+  .btn:hover{opacity:0.88;}
+  .btn-row{display:flex; gap:12px; flex-wrap:wrap; margin-top:18px;}
+
+  .preview-thumb{width:70px; height:70px; object-fit:cover; border-radius:3px; border:1px solid var(--line); background:var(--ivory-2);}
+
+  table{width:100%; border-collapse:collapse; font-size:0.88rem;}
+  th{text-align:left; padding:8px 10px; border-bottom:2px solid var(--line); color:var(--charcoal-soft); font-weight:500; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.03em;}
+  td{padding:10px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .cat-group-label{background:var(--ivory-2); font-weight:600; font-family:'Bodoni Moda',serif;}
+
+  .status-msg{font-size:0.85rem; padding:10px 14px; border-radius:3px; margin-top:12px; display:none;}
+  .status-msg.show{display:block;}
+  .status-ok{background:#E8F3EC; color:#1E5C35; border:1px solid #BFE0CC;}
+
+  .banner-preview{border:1px solid var(--line); border-radius:4px; overflow:hidden; margin-top:18px;}
+  .bp-bar{background:var(--red); color:#fff; padding:9px 14px; font-family:'Bodoni Moda',serif; font-weight:600; font-size:0.8rem; text-align:center; overflow:hidden; white-space:nowrap;}
+  .bp-badge-wrap{background:var(--ivory-2); padding:30px; display:flex; justify-content:center;}
+  .bp-badge{
+    background:var(--red); color:#fff; border:3px solid #fff; border-radius:999px; padding:10px 16px;
+    display:inline-flex; flex-direction:column; align-items:center; box-shadow:0 8px 20px -6px rgba(196,30,42,0.6);
+    font-family:'Bodoni Moda',serif;
+  }
+  .bp-badge span{font-weight:700; font-size:1rem;}
+  .bp-badge small{font-size:0.62rem; letter-spacing:0.14em;}
+
+  @media(max-width:640px){
+    .row{flex-direction:column;}
+    table, thead, tbody, th, td, tr{display:block;}
+    thead{display:none;}
+    tr{border-bottom:1px solid var(--line); padding:10px 0;}
+    td{border:none; padding:3px 0;}
+    td::before{content:attr(data-label); font-weight:600; display:inline-block; min-width:90px; color:var(--charcoal-soft); font-size:0.75rem;}
+  }
+</style>
+</head>
+<body>
+
+<header class="admin-head">
+  <div class="inner">
+    <h1>Style Of Life — Admin</h1>
+    <a href="jewelry.html">← Back to the live site</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="notice">
+    <b>How this works:</b> this page edits your site's data files (<code>data/products.json</code> and <code>data/banners.json</code>) right in your browser. There is no live server — changes you make here save as a draft on <b>this browser only</b>, and the public website won't change for other visitors until you press <b>Download</b> below, then replace that file in your GitHub repo and commit. Keep this page private; it isn't linked from the public site and has no password.
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="products">Products</button>
+    <button class="tab-btn" data-tab="banner">Banner &amp; Discount</button>
+  </div>
+
+  <!-- ================= PRODUCTS TAB ================= -->
+  <div class="tab-panel active" id="tab-products">
+
+    <div class="card">
+      <h2>Add a Product</h2>
+      <div class="row">
+        <div>
+          <label for="f-category">Category</label>
+          <select id="f-category">
+            <option value="necklaces">Necklaces</option>
+            <option value="bracelets">Bracelets</option>
+            <option value="rings">Rings</option>
+            <option value="earrings">Earrings</option>
+            <option value="signature-pieces">Signature Pieces</option>
+            <option value="__new__">+ New category…</option>
+          </select>
+          <input type="text" id="f-category-new" placeholder="New category name (e.g. Anklets)" style="display:none; margin-top:8px;">
+        </div>
+        <div>
+          <label>Product Type</label>
+          <div class="type-toggle">
+            <label><input type="radio" name="f-type" value="photo" checked> Photo</label>
+            <label><input type="radio" name="f-type" value="video"> Video (YouTube)</label>
+          </div>
+        </div>
+      </div>
+
+      <label for="f-name">Product Name</label>
+      <input type="text" id="f-name" placeholder="e.g. Oval Diamond Pendant">
+
+      <div class="row">
+        <div>
+          <label for="f-price">Price (leave blank for videos if unpriced)</label>
+          <input type="text" id="f-price" placeholder="From $2,400">
+        </div>
+      </div>
+
+      <label for="f-desc">Short Description</label>
+      <textarea id="f-desc" placeholder="A line or two about the piece — shown under the name."></textarea>
+
+      <div id="f-photo-fields">
+        <label for="f-image">Product Photo</label>
+        <input type="file" id="f-image" accept="image/*">
+        <img id="f-image-preview" class="preview-thumb" style="display:none; margin-top:10px;">
+      </div>
+
+      <div id="f-video-fields" style="display:none;">
+        <label for="f-video">YouTube Video ID or Link</label>
+        <input type="text" id="f-video" placeholder="e.g. 6ihAd4lLFuQ or a full youtube.com/shorts/ link">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="f-add-btn">Add Product</button>
+      </div>
+      <div class="status-msg status-ok" id="f-status">Product added.</div>
+    </div>
+
+    <div class="card">
+      <h2>Current Products <span id="product-count" style="font-weight:400; color:var(--charcoal-soft); font-size:0.9rem;"></span></h2>
+      <table id="product-table">
+        <thead><tr><th>Preview</th><th>Name</th><th>Category</th><th>Price</th><th></th></tr></thead>
+        <tbody id="product-rows"></tbody>
+      </table>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-green" id="download-products-btn">Download products.json</button>
+      <button class="btn btn-outline" id="reset-products-btn">Discard Draft &amp; Reload Live Version</button>
+    </div>
+  </div>
+
+  <!-- ================= BANNER TAB ================= -->
+  <div class="tab-panel" id="tab-banner">
+    <div class="card">
+      <h2>Scrolling Promo Bar</h2>
+      <label><input type="checkbox" id="b-promo-enabled" checked style="width:auto; margin-right:6px;"> Show the promo bar</label>
+      <label for="b-promo-text">Main Offer Text</label>
+      <input type="text" id="b-promo-text" placeholder="UP TO 45% OFF">
+      <div class="row">
+        <div>
+          <label for="b-sub1">Sub-line 1</label>
+          <input type="text" id="b-sub1" placeholder="LIMITED TIME OFFER">
+        </div>
+        <div>
+          <label for="b-sub2">Sub-line 2</label>
+          <input type="text" id="b-sub2" placeholder="MESSAGE US ON WHATSAPP TO CLAIM">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Header Discount Badge</h2>
+      <label><input type="checkbox" id="b-badge-enabled" checked style="width:auto; margin-right:6px;"> Show the badge on the home page video</label>
+      <div class="row">
+        <div>
+          <label for="b-badge-text">Badge Main Line</label>
+          <input type="text" id="b-badge-text" placeholder="UP TO 45%">
+        </div>
+        <div>
+          <label for="b-badge-sub">Badge Small Line</label>
+          <input type="text" id="b-badge-sub" placeholder="OFF">
+        </div>
+      </div>
+
+      <div class="banner-preview">
+        <div class="bp-bar" id="bp-bar-preview">✦ UP TO 45% OFF ✦ &nbsp; LIMITED TIME OFFER</div>
+        <div class="bp-badge-wrap">
+          <div class="bp-badge"><span id="bp-badge-text">UP TO 45%</span><small id="bp-badge-sub">OFF</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="save-banner-btn">Save Draft</button>
+      <button class="btn btn-green" id="download-banner-btn">Download banners.json</button>
+      <button class="btn btn-outline" id="reset-banner-btn">Discard Draft &amp; Reload Live Version</button>
+    </div>
+    <div class="status-msg status-ok" id="b-status">Saved.</div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var LS_PRODUCTS = 'sol_products_draft';
+  var LS_BANNER = 'sol_banner_draft';
+  var products = [];
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+      document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---------- Helpers ----------
+  function flash(el){ el.classList.add('show'); setTimeout(function(){el.classList.remove('show');}, 2500); }
+  function download(filename, data){
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+  function catLabel(cat){
+    var known = {"necklaces":"Necklaces","bracelets":"Bracelets","rings":"Rings","earrings":"Earrings","signature-pieces":"Signature Pieces"};
+    return known[cat] || cat.replace(/[-_]/g,' ').replace(/\b\w/g, function(c){return c.toUpperCase();});
+  }
+  function extractYouTubeId(input){
+    input = input.trim();
+    var m = input.match(/(?:youtube\.com\/shorts\/|youtu\.be\/|v=)([A-Za-z0-9_-]{6,})/);
+    return m ? m[1] : input;
+  }
+
+  // ---------- Products: load ----------
+  function loadProducts(cb){
+    var draft = null;
+    try{ draft = JSON.parse(localStorage.getItem(LS_PRODUCTS)||'null'); }catch(e){}
+    if(draft && draft.length){ products = draft; cb(); return; }
+    fetch('data/products.json', {cache:'no-store'}).then(function(r){return r.json();}).then(function(data){
+      products = data; cb();
+    }).catch(function(){ products = []; cb(); });
+  }
+  function saveDraft(){
+    localStorage.setItem(LS_PRODUCTS, JSON.stringify(products));
+  }
+  function nextId(){
+    var max = 0;
+    products.forEach(function(p){ var n = parseInt((p.id||'p0').replace(/\D/g,''),10); if(n>max) max=n; });
+    return 'p'+String(max+1).padStart(3,'0');
+  }
+
+  function renderTable(){
+    var tbody = document.getElementById('product-rows');
+    document.getElementById('product-count').textContent = '('+products.length+')';
+    if(!products.length){ tbody.innerHTML = '<tr><td colspan="5">No products yet.</td></tr>'; return; }
+    var byCat = {}; products.forEach(function(p){ (byCat[p.category]=byCat[p.category]||[]).push(p); });
+    var html = '';
+    Object.keys(byCat).forEach(function(cat){
+      html += '<tr class="cat-group-label"><td colspan="5">'+catLabel(cat)+' ('+byCat[cat].length+')</td></tr>';
+      byCat[cat].forEach(function(p){
+        var thumb = p.type==='video'
+          ? '<div class="preview-thumb" style="display:flex;align-items:center;justify-content:center;background:#111;color:#fff;font-size:0.7rem;">▶ Video</div>'
+          : '<img class="preview-thumb" src="'+(p.image||'')+'" onerror="this.style.opacity=0.3">';
+        html += '<tr data-id="'+p.id+'">'+
+          '<td data-label="Preview">'+thumb+'</td>'+
+          '<td data-label="Name">'+p.name+'</td>'+
+          '<td data-label="Category">'+catLabel(p.category)+'</td>'+
+          '<td data-label="Price">'+(p.price||'—')+'</td>'+
+          '<td data-label=""><button class="btn btn-danger" data-del="'+p.id+'">Delete</button></td>'+
+        '</tr>';
+      });
+    });
+    tbody.innerHTML = html;
+    tbody.querySelectorAll('[data-del]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if(!confirm('Delete this product from the draft?')) return;
+        products = products.filter(function(p){ return p.id !== btn.dataset.del; });
+        saveDraft(); renderTable();
+      });
+    });
+  }
+
+  // ---------- Add product form ----------
+  var catSelect = document.getElementById('f-category');
+  var catNew = document.getElementById('f-category-new');
+  catSelect.addEventListener('change', function(){
+    catNew.style.display = catSelect.value === '__new__' ? 'block' : 'none';
+  });
+
+  var photoFields = document.getElementById('f-photo-fields');
+  var videoFields = document.getElementById('f-video-fields');
+  document.querySelectorAll('input[name="f-type"]').forEach(function(r){
+    r.addEventListener('change', function(){
+      var isVideo = document.querySelector('input[name="f-type"]:checked').value === 'video';
+      photoFields.style.display = isVideo ? 'none' : 'block';
+      videoFields.style.display = isVideo ? 'block' : 'none';
+    });
+  });
+
+  var imageDataUrl = null;
+  document.getElementById('f-image').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      // shrink big photos so products.json stays small and the site stays fast
+      var img = new Image();
+      img.onload = function(){
+        var max = 900, w = img.width, hgt = img.height;
+        if(w > max){ hgt = Math.round(hgt * max / w); w = max; }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = hgt;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, hgt);
+        imageDataUrl = canvas.toDataURL('image/jpeg', 0.78);
+        var prev = document.getElementById('f-image-preview');
+        prev.src = imageDataUrl; prev.style.display = 'block';
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('f-add-btn').addEventListener('click', function(){
+    var category = catSelect.value === '__new__'
+      ? (catNew.value.trim().toLowerCase().replace(/\s+/g,'-') || 'new-category')
+      : catSelect.value;
+    var type = document.querySelector('input[name="f-type"]:checked').value;
+    var name = document.getElementById('f-name').value.trim();
+    var price = document.getElementById('f-price').value.trim();
+    var desc = document.getElementById('f-desc').value.trim();
+
+    if(!name){ alert('Please enter a product name.'); return; }
+    if(type === 'photo' && !imageDataUrl){ alert('Please choose a photo for this product.'); return; }
+    var videoId = '';
+    if(type === 'video'){
+      videoId = extractYouTubeId(document.getElementById('f-video').value);
+      if(!videoId){ alert('Please enter a YouTube video ID or link.'); return; }
+    }
+
+    var product = {
+      id: nextId(), category: category, type: type, name: name, price: price, description: desc,
+      image: type==='photo' ? imageDataUrl : null,
+      alt: name,
+      video: type==='video' ? videoId : null
+    };
+    products.push(product);
+    saveDraft();
+    renderTable();
+
+    // reset form
+    document.getElementById('f-name').value='';
+    document.getElementById('f-price').value='';
+    document.getElementById('f-desc').value='';
+    document.getElementById('f-video').value='';
+    document.getElementById('f-image').value='';
+    document.getElementById('f-image-preview').style.display='none';
+    imageDataUrl = null;
+    catNew.value=''; catNew.style.display='none'; catSelect.value='necklaces';
+
+    flash(document.getElementById('f-status'));
+  });
+
+  document.getElementById('download-products-btn').addEventListener('click', function(){
+    download('products.json', products);
+  });
+  document.getElementById('reset-products-btn').addEventListener('click', function(){
+    if(!confirm('This discards your local draft and reloads the live products.json. Continue?')) return;
+    localStorage.removeItem(LS_PRODUCTS);
+    loadProducts(renderTable);
+  });
+
+  loadProducts(renderTable);
+
+  // ---------- Banner tab ----------
+  var bEls = {
+    promoEnabled: document.getElementById('b-promo-enabled'),
+    promoText: document.getElementById('b-promo-text'),
+    sub1: document.getElementById('b-sub1'),
+    sub2: document.getElementById('b-sub2'),
+    badgeEnabled: document.getElementById('b-badge-enabled'),
+    badgeText: document.getElementById('b-badge-text'),
+    badgeSub: document.getElementById('b-badge-sub')
+  };
+
+  function updatePreview(){
+    document.getElementById('bp-bar-preview').textContent =
+      '✦ ' + (bEls.promoText.value||'') + ' ✦   ' + (bEls.sub1.value||'') + '   ·   ' + (bEls.sub2.value||'');
+    document.getElementById('bp-badge-text').textContent = bEls.badgeText.value || '';
+    document.getElementById('bp-badge-sub').textContent = bEls.badgeSub.value || '';
+  }
+  Object.values(bEls).forEach(function(el){ el.addEventListener('input', updatePreview); });
+
+  function bannerData(){
+    return {
+      promoEnabled: bEls.promoEnabled.checked,
+      promoText: bEls.promoText.value,
+      promoSubText1: bEls.sub1.value,
+      promoSubText2: bEls.sub2.value,
+      badgeEnabled: bEls.badgeEnabled.checked,
+      badgeText: bEls.badgeText.value,
+      badgeSubText: bEls.badgeSub.value
+    };
+  }
+  function loadBanner(){
+    var draft = null;
+    try{ draft = JSON.parse(localStorage.getItem(LS_BANNER)||'null'); }catch(e){}
+    function apply(b){
+      bEls.promoEnabled.checked = b.promoEnabled !== false;
+      bEls.promoText.value = b.promoText || '';
+      bEls.sub1.value = b.promoSubText1 || '';
+      bEls.sub2.value = b.promoSubText2 || '';
+      bEls.badgeEnabled.checked = b.badgeEnabled !== false;
+      bEls.badgeText.value = b.badgeText || '';
+      bEls.badgeSub.value = b.badgeSubText || '';
+      updatePreview();
+    }
+    if(draft){ apply(draft); return; }
+    fetch('data/banners.json', {cache:'no-store'}).then(function(r){return r.json();}).then(apply).catch(function(){});
+  }
+  loadBanner();
+
+  document.getElementById('save-banner-btn').addEventListener('click', function(){
+    localStorage.setItem(LS_BANNER, JSON.stringify(bannerData()));
+    flash(document.getElementById('b-status'));
+  });
+  document.getElementById('download-banner-btn').addEventListener('click', function(){
+    download('banners.json', bannerData());
+  });
+  document.getElementById('reset-banner-btn').addEventListener('click', function(){
+    if(!confirm('This discards your local draft and reloads the live banners.json. Continue?')) return;
+    localStorage.removeItem(LS_BANNER);
+    loadBanner();
+  });
+})();
+</script>
+
+</body>
+</html>
