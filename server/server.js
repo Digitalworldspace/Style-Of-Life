@@ -1,0 +1,34 @@
+import express from 'express';
+import multer from 'multer';
+import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+import {fileURLToPath} from 'url';
+dotenv.config();
+const __dirname=path.dirname(fileURLToPath(import.meta.url));
+const ROOT=path.join(__dirname,'..');
+const DATA=path.join(__dirname,'data');
+const PRODUCTS=path.join(DATA,'products.json');
+const TOKENS=path.join(DATA,'etsy-token.json');
+fs.mkdirSync(DATA,{recursive:true});
+if(!fs.existsSync(PRODUCTS)) fs.writeFileSync(PRODUCTS,'[]');
+const app=express();
+app.use(express.json({limit:'2mb'}));app.use(cookieParser());
+const upload=multer({dest:path.join(ROOT,'public/uploads')});
+app.use(express.static(path.join(ROOT,'public')));
+const readProducts=()=>JSON.parse(fs.readFileSync(PRODUCTS,'utf8')||'[]');
+const writeProducts=p=>fs.writeFileSync(PRODUCTS,JSON.stringify(p,null,2));
+const admin=(req,res,next)=>{if(!process.env.ADMIN_KEY||req.headers['x-admin-key']!==process.env.ADMIN_KEY)return res.status(401).json({error:'Unauthorized'});next()};
+const etsyKey=()=>`${process.env.ETSY_KEYSTRING||''}:${process.env.ETSY_SHARED_SECRET||''}`;
+async function etsyFetch(url,opts={}){const h={...(opts.headers||{}),'x-api-key':etsyKey()};const token=fs.existsSync(TOKENS)?JSON.parse(fs.readFileSync(TOKENS)):null;if(token?.access_token)h.Authorization=`Bearer ${token.access_token}`;const r=await fetch(url,{...opts,headers:h});if(r.status===401&&token?.refresh_token){await refreshToken();return etsyFetch(url,opts)}const text=await r.text();let body;try{body=JSON.parse(text)}catch{body={raw:text}}if(!r.ok)throw new Error(body.error||body.message||`Etsy ${r.status}`);return body}
+async function refreshToken(){const t=JSON.parse(fs.readFileSync(TOKENS));const body=new URLSearchParams({grant_type:'refresh_token',client_id:process.env.ETSY_KEYSTRING,refresh_token:t.refresh_token});const r=await fetch('https://api.etsy.com/v3/public/oauth/token',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body});const j=await r.json();if(!r.ok)throw new Error(j.error||'Refresh failed');fs.writeFileSync(TOKENS,JSON.stringify(j,null,2));return j}
+app.get('/api/products',(req,res)=>res.json(readProducts()));
+app.post('/api/products',admin,upload.array('images',10),(req,res)=>{const p=readProducts();const images=(req.files||[]).map(f=>'/uploads/'+path.basename(f.path));const item={id:'manual_'+crypto.randomUUID(),source:'manual',name:req.body.name,price:Number(req.body.price||0),currency:req.body.currency||'USD',category:req.body.category||'Jewelry',description:req.body.description||'',images,published:req.body.published!=='false',created_at:new Date().toISOString()};p.unshift(item);writeProducts(p);res.status(201).json(item)});
+app.delete('/api/products/:id',admin,(req,res)=>{const p=readProducts();const next=p.filter(x=>x.id!==req.params.id);if(next.length===p.length)return res.status(404).json({error:'Not found'});writeProducts(next);res.json({ok:true})});
+app.get('/api/etsy/connect',(req,res)=>{if(!process.env.ETSY_KEYSTRING||!process.env.ETSY_REDIRECT_URI)return res.status(500).send('Configure ETSY_KEYSTRING and ETSY_REDIRECT_URI first.');const state=crypto.randomBytes(24).toString('hex');const verifier=crypto.randomBytes(48).toString('base64url');const challenge=crypto.createHash('sha256').update(verifier).digest('base64url');res.cookie('etsy_state',state,{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production'});res.cookie('etsy_verifier',verifier,{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production'});res.cookie('etsy_admin',req.query.admin_key||'',{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production'});const u=new URL('https://www.etsy.com/oauth/connect');u.searchParams.set('response_type','code');u.searchParams.set('redirect_uri',process.env.ETSY_REDIRECT_URI);u.searchParams.set('scope','listings_r listings_w shops_r');u.searchParams.set('client_id',process.env.ETSY_KEYSTRING);u.searchParams.set('state',state);u.searchParams.set('code_challenge',challenge);u.searchParams.set('code_challenge_method','S256');res.redirect(u.toString())});
+app.get('/api/etsy/callback',async(req,res)=>{try{if(req.query.state!==req.cookies.etsy_state)throw new Error('Invalid OAuth state');const body=new URLSearchParams({grant_type:'authorization_code',client_id:process.env.ETSY_KEYSTRING,redirect_uri:process.env.ETSY_REDIRECT_URI,code:req.query.code,code_verifier:req.cookies.etsy_verifier});const r=await fetch('https://api.etsy.com/v3/public/oauth/token',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body});const j=await r.json();if(!r.ok)throw new Error(j.error||'Token exchange failed');fs.writeFileSync(TOKENS,JSON.stringify(j,null,2));res.redirect('/admin.html?connected=1')}catch(e){res.status(400).send('Etsy connection failed: '+e.message)}});
+app.post('/api/etsy/sync',admin,async(req,res)=>{try{if(!fs.existsSync(TOKENS))return res.status(400).json({error:'Connect Etsy first.'});const t=JSON.parse(fs.readFileSync(TOKENS));const userId=(t.access_token||'').split('.')[0];if(!userId)throw new Error('Missing Etsy user id');let shop;if(process.env.ETSY_SHOP_ID)shop={shop_id:Number(process.env.ETSY_SHOP_ID)};else shop=await etsyFetch(`https://api.etsy.com/v3/application/users/${userId}/shops`);const shopId=Number(process.env.ETSY_SHOP_ID||shop.results?.[0]?.shop_id||shop.shop_id);if(!shopId)throw new Error('No Etsy shop found');let offset=0,all=[];while(true){const j=await etsyFetch(`https://api.etsy.com/v3/application/shops/${shopId}/listings?state=active&limit=100&offset=${offset}`);all.push(...(j.results||[]));if(!j.results||j.results.length<100)break;offset+=100}const merged=readProducts().filter(x=>x.source!=='etsy');for(const l of all){const imgs=await etsyFetch(`https://api.etsy.com/v3/application/listings/${l.listing_id}/images`);merged.push({id:'etsy_'+l.listing_id,source:'etsy',etsy_listing_id:l.listing_id,name:l.title,title:l.title,description:l.description,price:Number(l.price||0),currency:l.currency_code||'USD',category:'Jewelry',images:(imgs.results||[]).sort((a,b)=>(a.rank||0)-(b.rank||0)).map(i=>i.url_fullxfull),alt:((imgs.results||[])[0]?.alt_text)||l.title,etsy_url:l.url||`https://www.etsy.com/listing/${l.listing_id}`,quantity:l.quantity,published:true,updated_at:new Date().toISOString()})}writeProducts(merged);res.json({ok:true,message:`Synced ${all.length} Etsy listings.`})}catch(e){res.status(500).json({error:e.message})}});
+app.get('/api/health',(req,res)=>res.json({ok:true,etsyConfigured:!!process.env.ETSY_KEYSTRING,etsyConnected:fs.existsSync(TOKENS)}));
+const port=process.env.PORT||3000;app.listen(port,()=>console.log(`Style Of Life running on http://localhost:${port}`));

@@ -1,0 +1,9 @@
+{
+  "name": "style-of-life-etsy-storefront",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Style Of Life luxury storefront with Etsy sync and manual product management",
+  "type": "module",
+  "scripts": {"start":"node server/server.js"},
+  "dependencies": {"express":"^5.1.0","multer":"^2.0.2","dotenv":"^17.2.3","cookie-parser":"^1.4.7"}
+}
